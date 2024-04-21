@@ -7,6 +7,7 @@ const GroupsRouter = () => {
     const controller = Controller();
 
     router.get('/', controller.getAll);
+    router.get('/:id', controller.getById);
 
     return router;
 };
