@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon src/app.js"
+    "start": "nodemon --watch .env --watch src src/app.js"
   },
   "author": "Cesar Augusto Arana Collazos <ksrarc@gmail.com>",
   "license": "ISC",
