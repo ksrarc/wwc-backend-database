@@ -10,6 +10,8 @@ por id.
 
 ### Pasos para replicar el ataque.
 
+NOTA: los ids de los grupos pueden ser diferentes cuando repliques el tutorial. Solo cambia los ids en las consulta al backend.
+
 1. Crear una base de datos nueva, obivio.
 2. Crear la tabla de grupos e insertar algunos con SQL.
 
