@@ -24,7 +24,17 @@ const Repository = (dbClient) => {
     };
 
     const getById = async (id) => {
-        const result = await dbClient.query(GET_BY_ID,[id]);
+
+        // este es el codigo SEGURO
+        // const result = await dbClient.query(GET_BY_ID,[id]);
+
+        // este codigo no usa consultas parametrizadas, usa consultas
+        // dinamicas creadas a partir del parametro id, el cual NO se esta
+        // validando, representando un RIESGO muy alto para un ataque
+        // de inyeccion de SQL. Veamos.
+        const queryById = `SELECT id, name, color FROM groups WHERE id = ${id}`;
+        const result = await dbClient.query(queryById); // no se envia el parametro, ya esta en la consulta.
+
         return result.rows[0];
     };
 
