@@ -2,17 +2,14 @@ import Service from "../services/groups.service.js";
 
 const Controller = () => {
 
-    const getAll = async (req, res, next) => {
-
+    const getAll = async (req, res) => {
         const service = Service(req.dbClient);
 
         const groups = await service.getAll();
         res.status(200).json(groups);
-
-        next();
     }
 
-    const getById = async (req, res, next) => {
+    const getById = async (req, res) => {
 
         const service = Service(req.dbClient);
         const group = await service.getById(req.params.id);
@@ -21,7 +18,6 @@ const Controller = () => {
         } else {
             res.status(404).end();
         }
-        next();
     }
 
     return {
