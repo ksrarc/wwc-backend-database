@@ -19,8 +19,44 @@ const Service = (dbClient) => {
 
     const create = async (group) => {
         
+        // validaciones de campos primero
+        const name = validaName(group.name);
+
+        // validaciones con la base de datos
+        const groupCount = await repository.countByName(name);
+        if (groupCount > 0) {
+            throw AppError('Ya existe un grupo con ese nombre', 409);
+        }
+
+        return await repository.create(group);
+    }
+
+    const fullUpdateById = async(group) => {
+
+        // validaciones de campos primero
+        const name = validaName(group.name);
+
+        // validaciones con la base de datos
+        const existingGroup = await repository.getById(group.id);
+        if (!existingGroup) {
+            throw AppError('El grupo a modificar no existe', 404);
+        }   
+
+        // validaciones con la base de datos
+        const groupCount = await repository.countByNameNotId(name, group.id);
+        if (groupCount > 0) {
+            throw AppError('Ya existe otro grupo con ese nombre', 409);
+        }
+        
+        return await repository.fullUpdateById({
+            ...group,
+            name
+        });
+    }
+
+    const validaName = (newName) => {
         // limpiar los datos
-        const name = (group.name || '').trim();
+        const name = (newName || '').trim();
         // validar los campos individuales
         if (name.length === 0) {
             throw AppError('El nombre es requerido', 400);
@@ -29,20 +65,15 @@ const Service = (dbClient) => {
             throw AppError('El nombre debe ser menor de 30 caracteres', 400);
         }
 
-        const groupCount = await repository.countByName(name);
-        if (groupCount > 0) {
-            throw AppError('Ya existe un grupo con ese nombre', 409);
-        }
-
-
-        return await repository.create(group);
+        return name;
     }
 
     return {
         getAll,
         getById,
         deleteById,
-        create
+        create,
+        fullUpdateById,
     }
 }
 

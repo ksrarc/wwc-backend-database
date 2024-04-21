@@ -7,6 +7,14 @@ const CREATE = `
     RETURNING id, name, color
 `;
 const COUNT_BY_NAME = `SELECT COUNT(*) as count FROM groups WHERE name = $1`;
+const FULL_UPDATE_BY_ID = `
+    UPDATE groups
+    SET name = $1, color = $2
+    WHERE id = $3
+`;
+const COUNT_BY_NAME_NOT_ID = `
+    SELECT COUNT(*) FROM groups WHERE name = $1 AND id <> $2
+`;
 
 const Repository = (dbClient) => {
 
@@ -39,12 +47,31 @@ const Repository = (dbClient) => {
         return count;
     }
 
+    const fullUpdateById = async ({id, name, color}) => {
+        const result = await dbClient.query(
+            FULL_UPDATE_BY_ID,
+            [name, color, id]
+        );
+        return result.rowCount > 0;
+    }
+
+    const countByNameNotId = async (name, id) => {
+        const result = await dbClient.query(COUNT_BY_NAME_NOT_ID, [name, id]);
+        const count = parseInt(result.rows[0].count);
+        if( isNaN(count) ) {
+            throw 'Invalid countByName result, is NaN!';
+        }
+        return count;
+    }
+
     return {
         getAll,
         getById,
         deleteById,
         create,
         countByName,
+        fullUpdateById,
+        countByNameNotId,
     }
 }
 
