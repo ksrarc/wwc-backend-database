@@ -46,13 +46,17 @@ const commitDatabase = async (req,_res,next) => {
 }
 
 const rollbackDatabase = async (err, req, res, next) => {
-    if (req.doTransaction && req.dbClient){
-        console.info('rollback transaction!');
-        await req.dbClient.query('ROLLBACK');
+    try {
+        if (req.doTransaction && req.dbClient){
+            console.info('rollback transaction!');
+            await req.dbClient.query('ROLLBACK');
+        }
+    } finally {
         req.dbClient.release();
         req.dbClient = undefined;
         req.doTransaction = undefined;
     }
+    
     console.info('--- ERROR ---');
     console.error(err);
     // need a way to detect app error from system error
@@ -63,7 +67,7 @@ const rollbackDatabase = async (err, req, res, next) => {
     res.status(errorCode).json({
         error: err.message || "Cant process your request",
     });
-    next();
+    next(err);
 }
 
 export {
