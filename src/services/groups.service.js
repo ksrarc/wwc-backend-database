@@ -20,7 +20,7 @@ const Service = (dbClient) => {
     const create = async (group) => {
         
         // validaciones de campos primero
-        const name = validaName(group.name);
+        const name = validatedName(group.name);
 
         // validaciones con la base de datos
         const groupCount = await repository.countByName(name);
@@ -34,7 +34,7 @@ const Service = (dbClient) => {
     const fullUpdateById = async(group) => {
 
         // validaciones de campos primero
-        const name = validaName(group.name);
+        const name = validatedName(group.name);
 
         // validaciones con la base de datos
         const existingGroup = await repository.getById(group.id);
@@ -54,7 +54,7 @@ const Service = (dbClient) => {
         });
     }
 
-    const validaName = (newName) => {
+    const validatedName = (newName) => {
         // limpiar los datos
         const name = (newName || '').trim();
         // validar los campos individuales
