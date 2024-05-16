@@ -63,11 +63,26 @@ const rollbackDatabase = async (err, req, res, next) => {
     if (err.isApplicationError === true) {
         errorCode = err.errorCode;
     }
+
+    // debug
     if (err.isJoi) {
+        // process errors
+        err.details.forEach( validationError => {
+            console.info(validationError.path, validationError.type, validationError.message);
+        });
+    }
+
+    if (err.isJoi && err.details.length > 1) {
         // process errors
         const errorMap = {};
         err.details.forEach( validationError => {
-            errorMap[validationError.path.join('')] = validationError.message;   
+            const path = validationError.path.join('');
+            if ( path in errorMap ){
+                // errorMap[path] = [errorMap[path], validationError.message];   
+                errorMap[path].push(validationError.message);   
+            } else {
+                errorMap[path] = [validationError.message];   
+            }
         });
         console.info('detalles', errorMap);   
         res.status(400).json({error: errorMap});

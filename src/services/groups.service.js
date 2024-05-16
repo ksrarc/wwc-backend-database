@@ -14,7 +14,7 @@ const Service = (dbClient) => {
     const repository = Repository(dbClient);
 
     const createSchema = joi.object({
-        name: joi.string().trim().required().messages({
+        name: joi.string().trim().required().max(30).messages({
             'string.empty': 'Nombre es requerido',
             'string.max': 'El nombre debe tener maximo 30 caracters',
         }),
@@ -25,7 +25,27 @@ const Service = (dbClient) => {
             .messages({
                 'any.only': 'Color no permitido'
         }),
+    }).external(async (value, helpers) => {
+        try {
+            console.info('external validation', value);
+            const groupCount = await repository.countByName(value.name);
+            if (groupCount > 0) {
+                const error = helpers.error('_root');
+                error.path = ['_root'];
+                error.message = 'Ya existe un grupo con ese nombre';
+                return error;
+            }
+            return value;
+        } catch (e) {
+            const error = helpers.error('_root');
+            error.path = ['_root'];
+            error.message = 'Intente mas tarde, algo fallo, no fue su culpa.';
+            return error;
+        }
+        
     });
+
+    const deleteByIdSchema = joi.number().required();
 
     const getAll = async () => {
         return await repository.getAll();
@@ -36,24 +56,14 @@ const Service = (dbClient) => {
     }
 
     const deleteById = async (id) => {
-        return await repository.deleteById(id);
+        const newId = await deleteByIdSchema.validateAsync(id);
+        return await repository.deleteById(newId);
     }
 
     const create = async (group) => {
-        
         const newGroup = await createSchema.validateAsync(group, {
             abortEarly: false
         });
-
-        // validaciones de campos primero
-        // const name = validatedName(group.name);
-
-        // validaciones con la base de datos
-        const groupCount = await repository.countByName(newGroup.name);
-        if (groupCount > 0) {
-            throw AppError('Ya existe un grupo con ese nombre', 409);
-        }
-
         return await repository.create(newGroup);
     }
 
