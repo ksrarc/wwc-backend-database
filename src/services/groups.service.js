@@ -1,9 +1,31 @@
+import joi from 'joi';
 import Repository from "../repositories/groups.repository.js";
 import AppError from "../lib/application.error.js";
+
+// simplificar
+const colors = [
+    'white',
+    'black',
+    'red'
+];
 
 const Service = (dbClient) => {
 
     const repository = Repository(dbClient);
+
+    const createSchema = joi.object({
+        name: joi.string().trim().required().messages({
+            'string.empty': 'Nombre es requerido',
+            'string.max': 'El nombre debe tener maximo 30 caracters',
+        }),
+        color: joi.string().trim()
+            .valid(...colors)
+            .optional()
+            .default('white')
+            .messages({
+                'any.only': 'Color no permitido'
+        }),
+    });
 
     const getAll = async () => {
         return await repository.getAll();
@@ -19,16 +41,20 @@ const Service = (dbClient) => {
 
     const create = async (group) => {
         
+        const newGroup = await createSchema.validateAsync(group, {
+            abortEarly: false
+        });
+
         // validaciones de campos primero
-        const name = validatedName(group.name);
+        // const name = validatedName(group.name);
 
         // validaciones con la base de datos
-        const groupCount = await repository.countByName(name);
+        const groupCount = await repository.countByName(newGroup.name);
         if (groupCount > 0) {
             throw AppError('Ya existe un grupo con ese nombre', 409);
         }
 
-        return await repository.create(group);
+        return await repository.create(newGroup);
     }
 
     const fullUpdateById = async(group) => {
