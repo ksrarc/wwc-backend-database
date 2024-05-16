@@ -1,31 +1,12 @@
-import joi from 'joi';
 import Repository from "../repositories/groups.repository.js";
 import AppError from "../lib/application.error.js";
-
-// simplificar
-const colors = [
-    'white',
-    'black',
-    'red'
-];
+import { buildCreateSchema, buildDeleteByIdSchema } from './groups.schema.js';
 
 const Service = (dbClient) => {
 
     const repository = Repository(dbClient);
 
-    const createSchema = joi.object({
-        name: joi.string().trim().required().max(30).messages({
-            'string.empty': 'Nombre es requerido',
-            'string.max': 'El nombre debe tener maximo 30 caracters',
-        }),
-        color: joi.string().trim()
-            .valid(...colors)
-            .optional()
-            .default('white')
-            .messages({
-                'any.only': 'Color no permitido'
-        }),
-    }).external(async (value, helpers) => {
+    const createSchema = buildCreateSchema().external(async (value, helpers) => {
         try {
             console.info('external validation', value);
             const groupCount = await repository.countByName(value.name);
@@ -42,10 +23,9 @@ const Service = (dbClient) => {
             error.message = 'Intente mas tarde, algo fallo, no fue su culpa.';
             return error;
         }
-        
     });
 
-    const deleteByIdSchema = joi.number().required();
+    const deleteByIdSchema = buildDeleteByIdSchema();
 
     const getAll = async () => {
         return await repository.getAll();
